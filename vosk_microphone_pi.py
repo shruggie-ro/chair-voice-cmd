@@ -150,9 +150,9 @@ def action_listen(cmd_handler, model, sample_rate, cmd_table, d, chunk):
                         cmd_handler.execute(cmd)
                     logger.info(f'exec command: {cmd}')
                     return cmd
-            else:
-                # When the recognizer thinks the audio data is not a complete sentence.
-                partial = rec.PartialResult()
-                # print(type(partial), partial==p)
-                if not partial[16] == partial[17] == '"':
-                    logger.debug(f'partial: {partial}')
+            #else:
+            #    # When the recognizer thinks the audio data is not a complete sentence.
+            #    partial = rec.PartialResult()
+            #    # print(type(partial), partial==p)
+            #    if not partial[16] == partial[17] == '"':
+            #        logger.debug(f'partial: {partial}')
