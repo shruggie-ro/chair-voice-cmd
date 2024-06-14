@@ -5,16 +5,69 @@ import vosk
 from vosk_microphone_pi import action_listen, load_model
 import time
 
+from threading import Thread
+from threading import Condition
+import PiRelay
+
 FORMAT = '%(asctime)-15s %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__name__)
+
+def cmd_handler_task(cmd_hnd):
+    relay1 = PiRelay.Relay("RELAY1")
+    relay2 = PiRelay.Relay("RELAY2")
+
+    while (cmd_hnd.running):
+        relay1.off()
+        relay2.off()
+
+        if (cmd_hnd.cmd_name == "recliner_down"):
+            for _ in range(1, 10):
+                if (cmd_hnd.cmd_name == "recliner_down"):
+                    logger.debug("down down down")
+                    relay1.on()
+                    time.sleep(1)
+            # Continue from the start of the loop
+            continue
+
+        if (cmd_hnd.cmd_name == "recliner_up"):
+            for _ in range(1, 10):
+                if (cmd_hnd.cmd_name == "recliner_up"):
+                    relay2.on()
+                    logger.debug("up up up")
+                    time.sleep(1)
+            # Continue from the start of the loop
+            continue
+        #with (cmd_hnd.cv):
+        #    cmd_hnd.cv.wait()
+        #    print("running " + cmd_hnd.cmd_name)
+        time.sleep(1)
 
 class cmd_handler:
 
     def __init__(self):
         self.command_mode = False
+        self.cv = Condition()
+        self.running = True
+        self.thrd = Thread(target = cmd_handler_task, args = (self, ))
+        self.cmd_name = "none"
+        self.thrd.start()
 
     def execute(self, cmd):
+        if (cmd == "hey_chair_recliner_up"):
+            self.command_mode = True
+            self.command_mode_start_time = time.time()
+            logger.debug("Entering command mode - Recliner up")
+            self.cmd_name = "recliner_up"
+            return
+
+        if (cmd == "hey_chair_recliner_down"):
+            self.command_mode = True
+            self.command_mode_start_time = time.time()
+            logger.debug("Entering command mode - Recliner down")
+            self.cmd_name = "recliner_down"
+            return
+
         if (cmd == "hey_chair"):
             self.command_mode = True
             self.command_mode_start_time = time.time()
@@ -28,16 +81,21 @@ class cmd_handler:
         if (now - self.command_mode_start_time > 10):
             logger.debug("Command mode time has expired")
             self.command_mode = False
+            self.cmd_name = "none"
             return
 
         if (cmd == "recliner_up"):
             logger.debug("Recliner raising")
             self.command_mode = False
+            self.cmd_name = cmd
+            #self.cv.notify()
             return
 
         if (cmd == "recliner_down"):
             logger.debug("Recliner lowering")
             self.command_mode = False
+            self.cmd_name = cmd
+            #self.cv.notify()
             return
 
 def load_config(path: str = './config/config.yml'):
