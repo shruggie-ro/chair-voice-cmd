@@ -58,16 +58,18 @@ class cmd_handler:
         self.thrd.start()
 
     def execute(self, cmd):
+        if (cmd == "stop"):
+            self.command_mode = False
+            logger.debug("Stopping")
+            self.cmd_name = "stop"
+            return
+
         if (cmd == "hey_chair_recliner_up"):
-            self.command_mode = True
-            self.command_mode_start_time = time.time()
             logger.debug("Entering command mode - Recliner up")
             self.cmd_name = "recliner_up"
             return
 
         if (cmd == "hey_chair_recliner_down"):
-            self.command_mode = True
-            self.command_mode_start_time = time.time()
             logger.debug("Entering command mode - Recliner down")
             self.cmd_name = "recliner_down"
             return

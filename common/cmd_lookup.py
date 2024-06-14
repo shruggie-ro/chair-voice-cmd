@@ -10,6 +10,8 @@ cmd_table_en = {
     'hey chair recliner lower': 'hey_chair_recliner_down',
     'hey chair recliner up': 'hey_chair_recliner_up',
     'hey chair recliner raise': 'hey_chair_recliner_up',
+    'hey chair stop': 'stop',
+    'stop': 'stop',
 }
 
 
