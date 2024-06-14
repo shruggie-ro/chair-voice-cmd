@@ -27,8 +27,8 @@ def cmd_handler_task(cmd_hnd):
                     logger.debug("down down down")
                     relay1.on()
                     time.sleep(1)
-                if (cmd_hnd.cmd_name == "recliner_down"):
-                    cmd_hnd.cmd_name = "none"
+            if (cmd_hnd.cmd_name == "recliner_down"):
+                cmd_hnd.cmd_name = "none"
             # Continue from the start of the loop
             continue
 
@@ -38,8 +38,8 @@ def cmd_handler_task(cmd_hnd):
                     relay2.on()
                     logger.debug("up up up")
                     time.sleep(1)
-                if (cmd_hnd.cmd_name == "recliner_up"):
-                    cmd_hnd.cmd_name = "none"
+            if (cmd_hnd.cmd_name == "recliner_up"):
+                cmd_hnd.cmd_name = "none"
             # Continue from the start of the loop
             continue
         #with (cmd_hnd.cv):
