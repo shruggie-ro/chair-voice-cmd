@@ -61,4 +61,8 @@ def text2cmd(text, cmd_table):
     An str. The corresponding Petoi command.
     """
 
-    return cmd_table.get(text, '')
+    for k in cmd_table.keys():
+        if (text.index(k)):
+            return cmd_table.get(k, '')
+
+    return ''
