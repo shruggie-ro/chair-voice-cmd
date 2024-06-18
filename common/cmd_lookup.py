@@ -1,7 +1,6 @@
 
 # ===================================== English(en-us) ====================================
 cmd_table_en = {
-    'hey chair': 'hey_chair',
     'hey chair recliner down': 'hey_chair_recliner_down',
     'hey chair recliner lower': 'hey_chair_recliner_down',
     'hey chair recliner up': 'hey_chair_recliner_up',
@@ -12,6 +11,7 @@ cmd_table_en = {
     'recliner up': 'recliner_up',
     'recliner down': 'recliner_down',
     'stop': 'stop',
+    'hey chair': 'hey_chair',
 }
 
 
