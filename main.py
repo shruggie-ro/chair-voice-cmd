@@ -16,15 +16,21 @@ logger = logging.getLogger(__name__)
 def cmd_handler_task(cmd_hnd):
     relay1 = PiRelay.Relay("RELAY1")
     relay2 = PiRelay.Relay("RELAY2")
+    relay3 = PiRelay.Relay("RELAY3")
+    relay4 = PiRelay.Relay("RELAY4")
 
     while (cmd_hnd.running):
         relay1.off()
         relay2.off()
+        relay3.on()
+        relay4.on()
 
         if (cmd_hnd.cmd_name == "recliner_down"):
             for _ in range(1, 10):
                 if (cmd_hnd.cmd_name == "recliner_down"):
                     logger.debug("down down down")
+                    relay3.off()
+                    time.sleep(0.5)
                     relay1.on()
                     time.sleep(1)
             if (cmd_hnd.cmd_name == "recliner_down"):
@@ -35,6 +41,8 @@ def cmd_handler_task(cmd_hnd):
         if (cmd_hnd.cmd_name == "recliner_up"):
             for _ in range(1, 10):
                 if (cmd_hnd.cmd_name == "recliner_up"):
+                    relay4.off()
+                    time.sleep(0.5)
                     relay2.on()
                     logger.debug("up up up")
                     time.sleep(1)
