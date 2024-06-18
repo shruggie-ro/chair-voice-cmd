@@ -62,7 +62,7 @@ def text2cmd(text, cmd_table):
     """
 
     for k in cmd_table.keys():
-        if (text.index(k)):
+        if (text.find(k) > -1):
             return cmd_table.get(k, '')
 
     return ''
