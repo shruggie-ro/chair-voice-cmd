@@ -2,11 +2,10 @@ import os
 import sys
 import logging
 import queue
-# import numpy as np
+import json
 import vosk
 import sounddevice as sd
 from common.cmd_lookup import text2cmd
-
 
 FORMAT = '%(asctime)-15s %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
@@ -18,7 +17,6 @@ logger.info(device)
 # device_index = device['index']
 
 q = queue.Queue()
-
 
 def load_model(model):
     """Load vosk model.
@@ -56,7 +54,6 @@ def load_model(model):
     else:
         raise ValueError('Unknown error while loading model.')
 
-
 def callback(in_data, frames, time, status):
     """This is called (from a separate thread) for each audio block.
 
@@ -74,19 +71,12 @@ def callback(in_data, frames, time, status):
     status : sounddevice.CallbackFlags
         Indicates whether there's an error during reading audio stream.
     """
-
-    # print(type(in_data), in_data)
-    # print(type(frames), frames)
-    # print(type(time), time)
-    # print(type(status), status)
     if status:
         print(status, file=sys.stderr)
     q.put(bytes(in_data))
-    # print()
-
 
 def action_listen(cmd_handler, model, sample_rate, cmd_table, d, chunk):
-    """The function to receive and recognize voice commands. And then excecute the corresponding Petoi command.
+    """The function to receive and recognize voice commands. And then execute the corresponding command.
 
     Parameters
     ----------
@@ -99,8 +89,8 @@ def action_listen(cmd_handler, model, sample_rate, cmd_table, d, chunk):
         The sample rate when receiving audio data.
 
     cmd_table : dict{ str:str }
-        Key represents the result of speech recognition(voice command).
-        Value represents the corresponding Petoi command.
+        Key represents the result of speech recognition (voice command).
+        Value represents the corresponding command.
 
     d : str
         A customized dictionary indicating the range of words to be recognized.
@@ -111,7 +101,7 @@ def action_listen(cmd_handler, model, sample_rate, cmd_table, d, chunk):
     Returns
     -------
     cmd : str
-        The corresponding Petoi command that is finally executed.
+        The corresponding command that is finally executed.
 
     Raises
     ------
@@ -125,22 +115,23 @@ def action_listen(cmd_handler, model, sample_rate, cmd_table, d, chunk):
         # soundfile expects an int, sounddevice provides a float.
         sample_rate = int(device_info['default_sample_rate'])
 
-    # The 3rd argument(can be omitted) is a custom dictionary including all candidate words/characters.
+    # The 3rd argument (can be omitted) is a custom dictionary including all candidate words/characters.
     rec = vosk.KaldiRecognizer(model, sample_rate, d)
     # Open a stream and read real-time audio stream data.
     with sd.RawInputStream(samplerate=sample_rate, blocksize=chunk * 10, device=device_name, dtype='int16',
-                            channels=1, callback=callback):
+                           channels=1, callback=callback):
         print('#' * 80)
         print('Press Ctrl+C to stop the recording')
         print('#' * 80)
 
+        last_partial_text = ""
         while True:
             data = q.get()
             # Send the received audio data into recognizer
             if rec.AcceptWaveform(data):
                 res = rec.Result()
-                # The structure of res is fixed, so for convenience
-                text = res[14:-3]
+                res_dict = json.loads(res)
+                text = res_dict.get('text', '')
 
                 print(f'final text: {text}')
                 # Get the mapped command.
@@ -150,9 +141,21 @@ def action_listen(cmd_handler, model, sample_rate, cmd_table, d, chunk):
                         cmd_handler.execute(cmd)
                     logger.info(f'exec command: {cmd}')
                     return cmd
-            #else:
-            #    # When the recognizer thinks the audio data is not a complete sentence.
-            #    partial = rec.PartialResult()
-            #    # print(type(partial), partial==p)
-            #    if not partial[16] == partial[17] == '"':
-            #        logger.debug(f'partial: {partial}')
+                else:
+                    # Handle unknown commands
+                    logger.info(f'Unrecognized command: {text}')
+                    if cmd_handler:
+                        cmd_handler.execute(text)
+                    return text
+            else:
+                partial_result = rec.PartialResult()
+                try:
+                    partial_result_dict = json.loads(partial_result)
+                    partial_text = partial_result_dict.get('partial', '')
+                    # Log partial results only if they have changed
+                    if partial_text and partial_text != last_partial_text:
+                        logger.debug(f'Partial recognized text: {partial_text}')
+                        last_partial_text = partial_text
+                except json.JSONDecodeError as e:
+                    logger.error(f"Error decoding partial result: {e}")
+                    logger.error(f"Partial result: {partial_result}")

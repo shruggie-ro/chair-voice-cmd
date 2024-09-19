@@ -12,6 +12,8 @@ cmd_table_en = {
     'hey chair recliner raise': 'hey_chair_recliner_up',
     'hey chair stop': 'stop',
     'stop': 'stop',
+    'check internet': 'check_internet',
+    'hey bird' : 'hey_bird'
 }
 
 
